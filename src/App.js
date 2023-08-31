@@ -10,6 +10,7 @@ function App() {
   const [session, setSession] = useState();
   const permissionsState = usePermissions();
   const [resetPermissions, setResetPermissions] = useState(false);
+  const [error, setError] = useState(false);
 
   const queryParams = useQuery();
   useEffect(() => {
@@ -21,7 +22,6 @@ function App() {
       .then(async (session) => {
         await incode.warmup();
         setSession(session);
-        console.log(session);
       });
   }, [queryParams]);
 
@@ -30,14 +30,25 @@ function App() {
     setResetPermissions(permissionsState === "denied" ? true : false);
   }, [permissionsState]);
 
+  
+  function handleError(e) {
+    if (e.type === "permissionDenied") {
+      setResetPermissions(true);
+      return;
+    }
+    setError(true);
+  }
+  
+  
   if (!session) return "loading";
   if (resetPermissions) {
     return <ResetPermissions onTryAgain={() => setResetPermissions(false)} />;
   }
+  if (error) return "Error!";
   return (
     <div className="App">
       <h1>{session.interviewId}</h1>
-      <FrontId session={session} onError={(e)=>console.log(e)} onSuccess={(s)=>console.log(s)}/>
+      <FrontId session={session} onError={handleError} onSuccess={(s)=>console.log(s)}/>
     </div>
   );
 }
